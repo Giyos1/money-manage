@@ -1,4 +1,6 @@
 import json
+from datetime import datetime
+
 from account.serializers import WalletSerializer
 from rest_framework import permissions
 from rest_framework.response import Response
@@ -46,9 +48,10 @@ class StatusViewSet(ViewSet):
         return self.queryset.filter(wallet__user=self.request.user)
 
     def list(self, request, *args, **kwargs):
+        time = datetime.now()
         queryset = self.get_queryset()
-        queryset_income = queryset.filter(money__is_income=True)
-        queryset_outcome = queryset.filter(money__is_income=False)
+        queryset_income = queryset.filter(money__is_income=True, created_at__month=time.month)
+        queryset_outcome = queryset.filter(money__is_income=False, created_at__month=time.month)
         income_uzs = summ_uzs(queryset_income)
         income_usd = summ_usd(queryset_income)
         outcome_uzs = summ_uzs(queryset_outcome)

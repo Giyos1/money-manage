@@ -21,12 +21,15 @@ class Money(models.Model):
         ('EUR', 'eur'),
     )
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
-    name = models.CharField(max_length=200, unique=True)
+    name = models.CharField(max_length=200)
     is_income = models.BooleanField(default=False)
     target_money = models.IntegerField()
     currency = models.CharField(max_length=100, choices=choice_currency)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('user', 'name')
 
     def actually(self):
         # items = []
