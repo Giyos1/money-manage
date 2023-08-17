@@ -41,9 +41,16 @@ class MoneyItemListSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
-class AutoPaySerializer(serializers.ModelSerializer):
+class AutoPayListSerializer(serializers.ModelSerializer):
+    money = MoneySerializer(read_only=True)
+    wallet = WalletSerializer(read_only=True)
+
     class Meta:
         model = AutoPay
         fields = '__all__'
 
 
+class AutoPaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AutoPay
+        fields = '__all__'

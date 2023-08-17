@@ -8,7 +8,8 @@ from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from .models import Money, MoneyItem, AutoPay
-from .serializers import MoneySerializer, MoneyItemSerializer, MoneyItemListSerializer, AutoPaySerializer
+from .serializers import MoneySerializer, MoneyItemSerializer, MoneyItemListSerializer, AutoPaySerializer, \
+    AutoPayListSerializer
 from .utils import summ_usd, summ_uzs, usd_to_uzd, uzd_to_usd
 from account.models import Wallet
 
@@ -23,6 +24,21 @@ class MoneyViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        money_list = []
+        for money in queryset:
+            auto_pays = money.auto_pay.all()
+            money_list.append({
+                'id': money.id,
+                'name': money.name,
+                'currency': money.currency,
+                'is_income': money.is_income,
+                'auto_pays': AutoPayListSerializer(auto_pays, many=True).data
+            })
+
+        return Response(data=money_list)
 
 
 class MoneyItemViewSet(ModelViewSet):
@@ -153,4 +169,5 @@ class AutoPayViewSet(ModelViewSet):
             instance.save()
             serializer_auto_pay = AutoPaySerializer(instance)
             serializer_transaction = MoneyItemSerializer(m1)
-        return Response(status=200, data={'auto_pay': serializer_auto_pay.data,'transaction': serializer_transaction.data})
+        return Response(status=200,
+                        data={'auto_pay': serializer_auto_pay.data, 'transaction': serializer_transaction.data})

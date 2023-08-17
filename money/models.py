@@ -82,7 +82,7 @@ class RepeatMoney(models.Model):
 
 
 class AutoPay(models.Model):
-    money = models.ForeignKey(Money, on_delete=models.CASCADE)
+    money = models.ForeignKey(Money, on_delete=models.CASCADE,related_name='auto_pay')
     description = models.TextField(max_length=1000)
     amount = models.IntegerField()
     deadline = models.DateTimeField(default=timezone.now)
