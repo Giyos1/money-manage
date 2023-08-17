@@ -59,8 +59,8 @@ class MoneyItem(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
     wallet = models.ForeignKey('account.Wallet', on_delete=models.CASCADE)
 
-    def __str__(self):
-        return '{} - {}'.format(self.money.name, self.amount)
+    # def __str__(self):
+    #     return '{} - {}'.format(self.money.name, self.amount)
 
     class Meta:
         ordering = ['-created_at']
@@ -79,3 +79,14 @@ class RepeatMoney(models.Model):
     target_time = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+
+class AutoPay(models.Model):
+    money = models.ForeignKey(Money, on_delete=models.CASCADE)
+    description = models.TextField(max_length=1000)
+    amount = models.IntegerField()
+    deadline = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    paid_amount = models.IntegerField(default=0)
+    wallet = models.ForeignKey('account.Wallet', on_delete=models.CASCADE)

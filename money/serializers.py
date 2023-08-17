@@ -1,5 +1,6 @@
+from django.utils import timezone
 from rest_framework import serializers
-from .models import Money, MoneyItem
+from .models import Money, MoneyItem, AutoPay
 from account.serializers import WalletSerializer
 
 
@@ -38,3 +39,11 @@ class MoneyItemListSerializer(serializers.ModelSerializer):
     class Meta:
         model = MoneyItem
         fields = '__all__'
+
+
+class AutoPaySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = AutoPay
+        fields = '__all__'
+
+
