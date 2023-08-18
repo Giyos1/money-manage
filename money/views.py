@@ -97,13 +97,13 @@ class StatusViewSet(ViewSet):
                 total_balance_wallets += usd_to_uzd(wallet.balance)
                 # print('dollar=',usd_to_uzd(wallet.balance))
                 # print(total_balance_wallets)
-
-        total_balance_uzs = balance_uzs + total_balance_wallets
-        total_balance_usd = balance_usd + uzd_to_usd(total_balance_wallets)
+        total_balance_wallets_usd = uzd_to_usd(total_balance_wallets)
+        # total_balance_uzs = balance_uzs + total_balance_wallets
+        # total_balance_usd = balance_usd + uzd_to_usd(total_balance_wallets)
 
         return Response(data={'income_uzs': income_uzs, 'income_usd': income_usd, 'outcome_uzs': outcome_uzs,
-                              'outcome_usd': outcome_usd, 'total_balance_uzs': total_balance_uzs,
-                              'total_balance_usd': total_balance_usd})
+                              'outcome_usd': outcome_usd, 'total_balance_uzs': total_balance_wallets,
+                              'total_balance_usd': total_balance_wallets_usd})
 
 
 class AutoPayViewSet(ModelViewSet):
