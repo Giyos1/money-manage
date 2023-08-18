@@ -1,3 +1,4 @@
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
 
@@ -28,3 +29,17 @@ class Wallet(models.Model):
 
     def __str__(self):
         return self.name
+
+    def full_clean(self, exclude=None, validate_unique=True, validate_constraints=True):
+        if self.balance < 0:
+            raise ValidationError('Balance must be positive.')
+        super().full_clean(exclude, validate_unique, validate_constraints)
+
+    def save(
+            self, force_insert=False, force_update=False, using=None, update_fields=None
+    ):
+        self.full_clean()
+        super().save(force_insert, force_update, using, update_fields)
+
+    class Meta:
+        ordering = ['-created_at']

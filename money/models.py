@@ -66,6 +66,7 @@ class MoneyItem(models.Model):
         ordering = ['-created_at']
 
 
+
 class RepeatMoney(models.Model):
     choice_repeat = (
         ('daily', 'Daily'),
