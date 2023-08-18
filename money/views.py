@@ -35,6 +35,10 @@ class MoneyViewSet(ModelViewSet):
                 'name': money.name,
                 'currency': money.currency,
                 'is_income': money.is_income,
+                'actually': money.actually(),
+                'target_money': money.target_money,
+                'created_at': money.created_at,
+                'updated_at': money.updated_at,
                 'auto_pays': AutoPayListSerializer(auto_pays, many=True).data
             })
 
@@ -152,7 +156,7 @@ class AutoPayViewSet(ModelViewSet):
             m1 = MoneyItem.objects.create(
                 wallet=wallet,
                 money=money,
-                amount=paid_amount,
+                amount=paid_amount - instance.paid_amount,
                 description=description,
             )
 
