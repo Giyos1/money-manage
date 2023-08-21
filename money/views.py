@@ -27,8 +27,10 @@ class MoneyViewSet(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
+        print(queryset)
         money_list = []
         for money in queryset:
+            print(money.is_deleted)
             auto_pays = money.auto_pay.all()
             money_list.append({
                 'id': money.id,
@@ -46,7 +48,7 @@ class MoneyViewSet(ModelViewSet):
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
-        instance.is_delete = True
+        instance.is_deleted = True
         instance.save()
         return Response(data={'message': 'Delete success'}, status=200)
 
