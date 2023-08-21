@@ -44,6 +44,12 @@ class MoneyViewSet(ModelViewSet):
 
         return Response(data=money_list)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        instance.is_delete = True
+        instance.save()
+        return Response(data={'message': 'Delete success'}, status=200)
+
 
 class MoneyItemViewSet(ModelViewSet):
     queryset = MoneyItem.objects.all()
