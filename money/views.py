@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 
+from django.db.transaction import atomic
 from django.utils import timezone
 
 from account.serializers import WalletSerializer
@@ -27,7 +28,6 @@ class MoneyViewSet(ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        print(queryset)
         money_list = []
         for money in queryset:
             print(money.is_deleted)
@@ -125,6 +125,7 @@ class AutoPayViewSet(ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
 
+    @atomic
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
@@ -135,12 +136,13 @@ class AutoPayViewSet(ModelViewSet):
             paid_amount = data['paid_amount']
             deadline = data['deadline']
             description = data['description']
-            MoneyItem.objects.create(
-                wallet=wallet,
-                money=money,
-                amount=paid_amount,
-                description=description,
-            )
+            if paid_amount > 0:
+                MoneyItem.objects.create(
+                    wallet=wallet,
+                    money=money,
+                    amount=paid_amount,
+                    description=description,
+                )
             if amount <= paid_amount:
                 deadline = deadline + timezone.timedelta(
                     days=(paid_amount // amount) * 30)
@@ -150,10 +152,12 @@ class AutoPayViewSet(ModelViewSet):
             serializer = AutoPaySerializer(a)
         return Response(status=200, data=serializer.data)
 
+    @atomic
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid():
+            m1 = None
             data = serializer.validated_data
             wallet = data['wallet']
             money = data['money']
@@ -161,12 +165,13 @@ class AutoPayViewSet(ModelViewSet):
             paid_amount = data['paid_amount']
             deadline = data['deadline']
             description = data['description']
-            m1 = MoneyItem.objects.create(
-                wallet=wallet,
-                money=money,
-                amount=paid_amount - instance.paid_amount,
-                description=description,
-            )
+            if paid_amount != instance.paid_amount:
+                m1 = MoneyItem.objects.create(
+                    wallet=wallet,
+                    money=money,
+                    amount=paid_amount - instance.paid_amount,
+                    description=description,
+                )
 
             if amount <= paid_amount:
                 deadline = deadline + timezone.timedelta(
@@ -180,6 +185,8 @@ class AutoPayViewSet(ModelViewSet):
             instance.description = description
             instance.save()
             serializer_auto_pay = AutoPaySerializer(instance)
-            serializer_transaction = MoneyItemSerializer(m1)
-        return Response(status=200,
-                        data={'auto_pay': serializer_auto_pay.data, 'transaction': serializer_transaction.data})
+            if m1:
+                serializer_transaction = MoneyItemSerializer(m1)
+                return Response(status=200,
+                                data={'auto_pay': serializer_auto_pay.data, 'transaction': serializer_transaction.data})
+            return Response(status=200, data={'auto_pay': serializer_auto_pay.data})
