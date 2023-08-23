@@ -173,7 +173,7 @@ class AutoPayViewSet(ModelViewSet):
             paid_amount = data['paid_amount']
             deadline = data['deadline']
             description = data['description']
-            if paid_amount != instance.paid_amount:
+            if paid_amount != instance.paid_amount and wallet == instance.wallet:
                 m1 = MoneyItem.objects.create(
                     wallet=wallet,
                     money=money,
