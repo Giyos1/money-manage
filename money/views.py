@@ -41,6 +41,7 @@ class MoneyViewSet(ModelViewSet):
                 'target_money': money.target_money,
                 'created_at': money.created_at,
                 'updated_at': money.updated_at,
+                'order': money.order,
                 'auto_pays': AutoPayListSerializer(auto_pays, many=True).data
             })
 
