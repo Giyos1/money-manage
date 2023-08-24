@@ -40,7 +40,7 @@ class RegisterationSerializer(serializers.ModelSerializer):
 
 class CategoryWalletSerializer(serializers.ModelSerializer):
     class Meta:
-        fields = ('id','name', 'description')
+        fields = ('id', 'name', 'description')
         model = CategoryWallet
 
 
@@ -48,3 +48,15 @@ class WalletSerializer(serializers.ModelSerializer):
     class Meta:
         fields = "__all__"
         model = Wallet
+
+
+class ResetSerializer(serializers.Serializer):
+    gmail = serializers.EmailField()
+
+
+class UserSerializerNew(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    first_name = serializers.CharField(allow_blank=True, allow_null=True)
+    last_name = serializers.CharField(allow_blank=True, allow_null=True)
+    email = serializers.EmailField(allow_blank=True, allow_null=True)
+    password = serializers.CharField(required=True)

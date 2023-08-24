@@ -133,3 +133,9 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # SESSION_COOKIE_SECURE = True
 # SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_HOST_USER = 'moneymanage433@gmail.com'
+EMAIL_HOST_PASSWORD = 'sgylkrlkznhtfalb'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True

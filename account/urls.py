@@ -6,6 +6,9 @@ router = CustomRouter(root_view_name='account-wallet-root')
 
 router.register(r'wallet', views.WalletViewSet, basename='wallet')
 router.register(r'category-wallet', views.CategoryWalletViewSet, basename='category-wallet')
+router.register(r'reset-password', views.ResetPasswordViewSet, basename='reset-password')
+router.register(r'verify', views.VerifyViewSet, basename='verify')
+router.register(r'new-password', views.NewPasswordViewSet, basename='new-password')
 
 urlpatterns = [
                   path('login/', views.LoginView.as_view(), name='login'),

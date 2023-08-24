@@ -43,3 +43,10 @@ class Wallet(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+
+
+class Token(models.Model):
+    token = models.CharField(max_length=100)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
