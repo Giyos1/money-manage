@@ -96,7 +96,7 @@ class RegistrationView(views.APIView):
             send_mail(
                 subject='Activation link',
                 message=None,
-                html_message=f'Activation link: <a href="http://localhost:3000/auth/register/verify/{token}">tap here</a>',
+                html_message=f'Activation link: <a href="https://money-management-liart.vercel.app/auth/register/verify/{token}">tap here</a>',
                 from_email='moneymanage433@gmail.com',
                 recipient_list=[user.username],
                 fail_silently=False, )
@@ -132,7 +132,7 @@ class ResetPasswordViewSet(ViewSet):
                 token = toke_gen_uniqe()
                 send_mail(
                     subject='Activation link',
-                    html_message=f'Activation link: <a href="http://localhost:3000/auth/verify/{token}">tap here</a>',
+                    html_message=f'Activation link: <a href="https://money-management-liart.vercel.app/auth/verify/{token}">tap here</a>',
                     from_email='moneymanage433@gmail.com',
                     recipient_list=[username],
                     fail_silently=False
