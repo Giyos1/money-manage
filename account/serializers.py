@@ -60,3 +60,8 @@ class UserSerializerNew(serializers.Serializer):
     last_name = serializers.CharField(allow_blank=True, allow_null=True)
     email = serializers.EmailField(allow_blank=True, allow_null=True)
     password = serializers.CharField(required=True)
+
+
+class DeleteUserSerializer(serializers.Serializer):
+    username = serializers.CharField(required=True)
+    password = serializers.CharField(required=True)

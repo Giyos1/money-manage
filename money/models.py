@@ -50,7 +50,7 @@ class Money(models.Model):
 
 
 class MoneyItem(models.Model):
-    money = models.ForeignKey(Money, on_delete=models.SET_NULL, related_name='money_item', null=True, blank=True)
+    money = models.ForeignKey(Money, on_delete=models.CASCADE, related_name='money_item', null=True, blank=True)
     description = models.TextField(max_length=1000)
     amount = models.IntegerField()
     transaction_date = models.DateTimeField(default=timezone.now)

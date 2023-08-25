@@ -1,16 +1,57 @@
+from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
+from django.db import transaction
 from rest_framework import views, response, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 
+from account.models import Wallet, CategoryWallet, Token
 from .authentication import CsrfExemptSessionAuthentication
 from .serializers import LoginSerializer, UserSerializer, RegisterationSerializer, WalletSerializer, \
-    CategoryWalletSerializer, ResetSerializer, UserSerializerNew
-from django.contrib.auth import login, logout
-from account.models import Wallet, CategoryWallet, Token
+    CategoryWalletSerializer, ResetSerializer, UserSerializerNew, DeleteUserSerializer
 from .utils import toke_gen_uniqe
+
+
+class UserDeleteViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = DeleteUserSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        return User.objects.filter(id=self.request.user.id)
+
+    def create(self, request, *args, **kwargs):
+        serializer = DeleteUserSerializer(data=request.data)
+        if serializer.is_valid():
+            password = serializer.validated_data['password']
+            username = serializer.validated_data['username']
+            try:
+                user = User.objects.get(username=username)
+            except User.DoesNotExist:
+                return Response({'message': 'user not found'})
+            if user.check_password(password) and user.id == self.request.user.id:
+                user.delete()
+                return Response({'message': 'user deleted'}, status=200)
+            return Response({'message': 'password is incorrect'}, status=400)
+        return Response(serializer.errors, status=400)
+
+    def list(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    def update(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    def partial_update(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    def destroy(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    @action(detail=True, methods=['post', 'put', 'patch', 'delete'])
+    def custom_action(self, request, pk=None):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
 
 
 class LoginView(views.APIView):
@@ -44,11 +85,39 @@ class SessionUserView(views.APIView):
 class RegistrationView(views.APIView):
     permission_classes = (permissions.AllowAny,)
 
+    @transaction.atomic
     def post(self, request):
         serializer = RegisterationSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return response.Response(data=serializer.data, status=201)
+        if serializer.is_valid():
+            user = serializer.save()
+            user.is_active = False
+            user.save()
+            token = toke_gen_uniqe()
+            send_mail(
+                subject='Activation link',
+                message=None,
+                html_message=f'Activation link: <a href="http://localhost:3000/auth/register/verify/{token}">tap here</a>',
+                from_email='moneymanage433@gmail.com',
+                recipient_list=[user.username],
+                fail_silently=False, )
+            token = Token(token=token, user=user)
+            token.save()
+            return response.Response({'detail': 'Email sent'}, status=201)
+        return response.Response(serializer.errors, status=400)
+
+    def get(self, request):
+        token = request.GET.get('token')
+        if token:
+            try:
+                token = Token.objects.get(token=token)
+            except Token.DoesNotExist:
+                return response.Response({'detail': 'Token not found'}, status=404)
+            user = token.user
+            user.is_active = True
+            user.save()
+            token.delete()
+            return response.Response(data=UserSerializer(user).data, status=200)
+        return response.Response({'detail': 'Token not found'}, status=404)
 
 
 class ResetPasswordViewSet(ViewSet):
@@ -63,7 +132,7 @@ class ResetPasswordViewSet(ViewSet):
                 token = toke_gen_uniqe()
                 send_mail(
                     subject='Activation link',
-                    message=f'Activation link: http://localhost:3000/auth/verify/{token}',
+                    html_message=f'Activation link: <a href="http://localhost:3000/auth/verify/{token}">tap here</a>',
                     from_email='moneymanage433@gmail.com',
                     recipient_list=[username],
                     fail_silently=False
