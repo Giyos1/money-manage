@@ -15,6 +15,26 @@ from .utils import summ_usd, summ_uzs, usd_to_uzd, uzd_to_usd
 from account.models import Wallet
 
 
+class MoneyOrderUpdateViewSet(ModelViewSet):
+    queryset = Money.objects.all()
+    serializer_class = MoneySerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def get_queryset(self):
+        return self.queryset.filter(user=self.request.user, is_deleted=False)
+
+    def update(self, request, *args, **kwargs):
+        data = request.data
+        for item in data:
+            try:
+                money = Money.objects.get(id=item['id'])
+                money.order = item['order']
+                money.save()
+            except Money.DoesNotExist:
+                pass
+        return Response(data={'message': 'Update success'}, status=200)
+
+
 class MoneyViewSet(ModelViewSet):
     queryset = Money.objects.all()
     serializer_class = MoneySerializer
