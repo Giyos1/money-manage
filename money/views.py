@@ -3,6 +3,7 @@ from datetime import datetime
 
 from django.db.transaction import atomic
 from django.utils import timezone
+from rest_framework.views import APIView
 
 from account.serializers import WalletSerializer
 from rest_framework import permissions
@@ -15,16 +16,11 @@ from .utils import summ_usd, summ_uzs, usd_to_uzd, uzd_to_usd
 from account.models import Wallet
 
 
-class MoneyOrderUpdateViewSet(ModelViewSet):
-    queryset = Money.objects.all()
-    serializer_class = MoneySerializer
+class MoneyOrderUpdateViewSet(ViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
-    def get_queryset(self):
-        return self.queryset.filter(user=self.request.user, is_deleted=False)
-
-    def update(self, request, *args, **kwargs):
-        data = request.data
+    def create(self, request, *args, **kwargs):
+        data = request.data['order']
         for item in data:
             try:
                 money = Money.objects.get(id=item['id'])
