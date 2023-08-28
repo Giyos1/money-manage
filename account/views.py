@@ -132,6 +132,7 @@ class ResetPasswordViewSet(ViewSet):
                 token = toke_gen_uniqe()
                 send_mail(
                     subject='Activation link',
+                    message=None,
                     html_message=f'Activation link: <a href="https://money-management-liart.vercel.app/auth/verify/{token}">tap here</a>',
                     from_email='moneymanage433@gmail.com',
                     recipient_list=[username],
