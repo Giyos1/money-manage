@@ -65,3 +65,10 @@ class UserSerializerNew(serializers.Serializer):
 class DeleteUserSerializer(serializers.Serializer):
     username = serializers.CharField(required=True)
     password = serializers.CharField(required=True)
+
+
+class WalletExchangeMoneySerializer(serializers.Serializer):
+    wallet_id_from = serializers.IntegerField(required=True)
+    wallet_id_to = serializers.IntegerField(required=True)
+    amount = serializers.IntegerField(required=True)
+    rate = serializers.IntegerField(required=True)

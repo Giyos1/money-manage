@@ -10,7 +10,7 @@ from rest_framework.viewsets import ViewSet, ModelViewSet
 from account.models import Wallet, CategoryWallet, Token
 from .authentication import CsrfExemptSessionAuthentication
 from .serializers import LoginSerializer, UserSerializer, RegisterationSerializer, WalletSerializer, \
-    CategoryWalletSerializer, ResetSerializer, UserSerializerNew, DeleteUserSerializer
+    CategoryWalletSerializer, ResetSerializer, UserSerializerNew, DeleteUserSerializer, WalletExchangeMoneySerializer
 from .utils import toke_gen_uniqe
 
 
