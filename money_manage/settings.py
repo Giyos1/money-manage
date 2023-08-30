@@ -136,7 +136,7 @@ SESSION_COOKIE_AGE = 300  # set just 10 seconds to test
 SESSION_SAVE_EVERY_REQUEST = True
 
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_HOST_USER = 'moneymanage433@gmail.com'
-EMAIL_HOST_PASSWORD = 'sgylkrlkznhtfalb'
+EMAIL_HOST_USER = 'pulboshqaruvi@gmail.com'
+EMAIL_HOST_PASSWORD = 'zlgiskpozscrmxnz'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
