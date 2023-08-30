@@ -122,6 +122,7 @@ class StatusViewSet(ViewSet):
                 total_balance_wallets += usd_to_uzd(wallet.balance)
                 # print('dollar=',usd_to_uzd(wallet.balance))
                 # print(total_balance_wallets)
+        print("sum",total_balance_wallets)
 
         total_balance_wallets_usd = 0
         for wallet in user_wallets:
@@ -130,7 +131,7 @@ class StatusViewSet(ViewSet):
 
             elif wallet.currency == 'UZS':
                 total_balance_wallets_usd += uzd_to_usd(wallet.balance)
-
+        print("usd",total_balance_wallets_usd)
         # total_balance_uzs = balance_uzs + total_balance_wallets
         # total_balance_usd = balance_usd + uzd_to_usd(total_balance_wallets)
 
