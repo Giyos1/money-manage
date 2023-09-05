@@ -72,3 +72,12 @@ class WalletExchangeMoneySerializer(serializers.Serializer):
     wallet_id_to = serializers.IntegerField(required=True)
     amount = serializers.IntegerField(required=True)
     rate = serializers.IntegerField(required=True)
+
+    def validate(self, data):
+        if data['wallet_id_from'] == data['wallet_id_to']:
+            raise serializers.ValidationError('Wallets must be different.')
+        wallet_from = Wallet.objects.get(id=data['wallet_id_from'])
+        wallet_to = Wallet.objects.get(id=data['wallet_id_to'])
+        if wallet_from.balance < data['amount']:
+            raise serializers.ValidationError('Insufficient funds.')
+        return data

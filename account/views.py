@@ -6,8 +6,10 @@ from rest_framework import views, response, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
-
+from django.db.transaction import atomic
 from account.models import Wallet, CategoryWallet, Token
+from money.models import MoneyItem, Money
+from money.serializers import MoneyItemSerializer
 from .authentication import CsrfExemptSessionAuthentication
 from .serializers import LoginSerializer, UserSerializer, RegisterationSerializer, WalletSerializer, \
     CategoryWalletSerializer, ResetSerializer, UserSerializerNew, DeleteUserSerializer, WalletExchangeMoneySerializer
@@ -230,6 +232,152 @@ class CategoryWalletViewSet(ModelViewSet):
     permission_classes = (permissions.IsAuthenticated,)
 
     def create(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    def update(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    def partial_update(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    def destroy(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    @action(detail=True, methods=['post', 'put', 'patch', 'delete'])
+    def custom_action(self, request, pk=None):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+
+class WalletExchangeMoneyViewSet(ModelViewSet):
+    serializer_class = WalletExchangeMoneySerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    @atomic
+    def create(self, request, *args, **kwargs):
+        serializer = WalletExchangeMoneySerializer(data=request.data)
+        if serializer.is_valid():
+            dict1 = {}
+            wallet_from_id = serializer.validated_data['wallet_id_from']
+            wallet_to_id = serializer.validated_data['wallet_id_to']
+            amount = serializer.validated_data['amount']
+            rate = serializer.validated_data['rate']
+            wallet_from = Wallet.objects.get(id=wallet_from_id)
+            wallet_to = Wallet.objects.get(id=wallet_to_id)
+
+            if wallet_from.currency == wallet_to.currency:
+                income_transaction = MoneyItem.objects.create(
+                    wallet=wallet_to,
+                    amount=amount,
+                    description='Exchange money from another wallet',
+                    money=Money.objects.create(
+                        user=request.user,
+                        name='Exchange money from another wallet',
+                        is_income=True,
+                        target_money=amount,
+                        currency=wallet_to.currency,
+                        is_deleted=True
+
+                    ))
+                outcome_transaction = MoneyItem.objects.create(
+                    wallet=wallet_from,
+                    amount=amount,
+                    description='Exchange money to another wallet',
+                    money=Money.objects.create(
+                        user=request.user,
+                        name='Exchange money to another wallet',
+                        is_income=False,
+                        target_money=amount,
+                        currency=wallet_from.currency,
+                        is_deleted=True
+                    ))
+
+                serializer_income = MoneyItemSerializer(income_transaction)
+                serializer_outcome = MoneyItemSerializer(outcome_transaction)
+                serializer_wallet_from = WalletSerializer(wallet_from)
+                serializer_wallet_to = WalletSerializer(wallet_to)
+                dict1['wallet_from'] = serializer_wallet_from.data
+                dict1['wallet_to'] = serializer_wallet_to.data
+                dict1['income_transaction'] = serializer_income.data
+                dict1['outcome_transaction'] = serializer_outcome.data
+                return Response(data=dict1, status=200)
+
+            else:
+                if wallet_from.currency == 'USD':
+                    income_transaction = MoneyItem.objects.create(
+                        wallet=wallet_to,
+                        amount=amount * rate,
+                        description='Exchange money from another wallet',
+                        money=Money.objects.create(
+                            user=request.user,
+                            name='Exchange money from another wallet',
+                            is_income=True,
+                            target_money=amount,
+                            currency=wallet_to.currency,
+                            is_deleted=True
+                        )
+                    )
+                    outcome_transaction = MoneyItem.objects.create(
+                        wallet=wallet_from,
+                        amount=amount,
+                        description='Exchange money to another wallet',
+                        money=Money.objects.create(
+                            user=request.user,
+                            name='Exchange money to another wallet',
+                            is_income=False,
+                            target_money=amount,
+                            currency=wallet_from.currency,
+                            is_deleted=True
+                        )
+                    )
+
+                    serializer_income = MoneyItemSerializer(income_transaction)
+                    serializer_outcome = MoneyItemSerializer(outcome_transaction)
+                    serializer_wallet_from = WalletSerializer(wallet_from)
+                    serializer_wallet_to = WalletSerializer(wallet_to)
+                    dict1['wallet_from'] = serializer_wallet_from.data
+                    dict1['wallet_to'] = serializer_wallet_to.data
+                    dict1['income_transaction'] = serializer_income.data
+                    dict1['outcome_transaction'] = serializer_outcome.data
+                    return Response(data=dict1, status=200)
+                elif wallet_from.currency == 'UZS':
+                    income_transaction = MoneyItem.objects.create(
+                        wallet=wallet_to,
+                        amount=amount / rate,
+                        description='Exchange money from another wallet',
+                        money=Money.objects.create(
+                            user=request.user,
+                            name='Exchange money to another wallet',
+                            is_income=True,
+                            target_money=amount,
+                            currency=wallet_to.currency,
+                            is_deleted=True
+                        )
+                    )
+                    outcome_transaction = MoneyItem.objects.create(
+                        wallet=wallet_from,
+                        amount=amount,
+                        description='Exchange money to another wallet',
+                        money=Money.objects.create(
+                            user=request.user,
+                            name='Exchange money to another wallet',
+                            is_income=False,
+                            target_money=amount,
+                            currency=wallet_from.currency,
+                            is_deleted=True
+                        )
+                    )
+
+                    serializer_income = MoneyItemSerializer(income_transaction)
+                    serializer_outcome = MoneyItemSerializer(outcome_transaction)
+                    serializer_wallet_from = WalletSerializer(wallet_from)
+                    serializer_wallet_to = WalletSerializer(wallet_to)
+                    dict1['income_transaction'] = serializer_income.data
+                    dict1['outcome_transaction'] = serializer_outcome.data
+                    dict1['wallet_from'] = serializer_wallet_from.data
+                    dict1['wallet_to'] = serializer_wallet_to.data
+                    return Response(data=dict1, status=200)
+
+    def list(self, request, *args, **kwargs):
         return Response({'detail': 'Method Not Allowed'}, status=405)
 
     def update(self, request, *args, **kwargs):
