@@ -70,8 +70,8 @@ class DeleteUserSerializer(serializers.Serializer):
 class WalletExchangeMoneySerializer(serializers.Serializer):
     wallet_id_from = serializers.IntegerField(required=True)
     wallet_id_to = serializers.IntegerField(required=True)
-    amount = serializers.IntegerField(required=True)
-    rate = serializers.IntegerField(required=True)
+    amount = serializers.FloatField(required=True)
+    rate = serializers.FloatField(required=True)
 
     def validate(self, data):
         if data['wallet_id_from'] == data['wallet_id_to']:

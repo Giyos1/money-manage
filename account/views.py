@@ -305,7 +305,7 @@ class WalletExchangeMoneyViewSet(ModelViewSet):
                 if wallet_from.currency == 'USD':
                     income_transaction = MoneyItem.objects.create(
                         wallet=wallet_to,
-                        amount=amount * rate,
+                        amount=float(amount) * float(rate),
                         description='Exchange money from another wallet',
                         money=Money.objects.create(
                             user=request.user,
@@ -342,7 +342,7 @@ class WalletExchangeMoneyViewSet(ModelViewSet):
                 elif wallet_from.currency == 'UZS':
                     income_transaction = MoneyItem.objects.create(
                         wallet=wallet_to,
-                        amount=amount / rate,
+                        amount=float(amount) / float(rate),
                         description='Exchange money from another wallet',
                         money=Money.objects.create(
                             user=request.user,

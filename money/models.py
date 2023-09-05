@@ -23,7 +23,7 @@ class Money(models.Model):
     user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     name = models.CharField(max_length=200)
     is_income = models.BooleanField(default=False)
-    target_money = models.IntegerField()
+    target_money = models.FloatField()
     currency = models.CharField(max_length=100, choices=choice_currency)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -52,7 +52,7 @@ class Money(models.Model):
 class MoneyItem(models.Model):
     money = models.ForeignKey(Money, on_delete=models.CASCADE, related_name='money_item', null=True, blank=True)
     description = models.TextField(max_length=1000)
-    amount = models.IntegerField()
+    amount = models.FloatField()
     transaction_date = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
