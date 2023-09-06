@@ -21,7 +21,7 @@ class Wallet(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     category = models.ForeignKey(CategoryWallet, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
-    balance = models.IntegerField()
+    balance = models.FloatField()
     currency = models.CharField(max_length=100, choices=choice_currency)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
