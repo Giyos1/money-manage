@@ -2,17 +2,19 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.models import User
 from django.core.mail import send_mail
 from django.db import transaction
+from django.utils import timezone
 from rest_framework import views, response, permissions
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework.viewsets import ViewSet, ModelViewSet
 from django.db.transaction import atomic
-from account.models import Wallet, CategoryWallet, Token
+from account.models import Wallet, CategoryWallet, Token, ExitSession
 from money.models import MoneyItem, Money
 from money.serializers import MoneyItemSerializer
 from .authentication import CsrfExemptSessionAuthentication
 from .serializers import LoginSerializer, UserSerializer, RegisterationSerializer, WalletSerializer, \
-    CategoryWalletSerializer, ResetSerializer, UserSerializerNew, DeleteUserSerializer, WalletExchangeMoneySerializer
+    CategoryWalletSerializer, ResetSerializer, UserSerializerNew, DeleteUserSerializer, WalletExchangeMoneySerializer, \
+    ExitSessionSerializer
 from .utils import toke_gen_uniqe
 
 
@@ -80,8 +82,16 @@ class SessionUserView(views.APIView):
 
     def get(self, request):
         user = User.objects.get(pk=self.request.user.id)
-        serializer = UserSerializer(user)
-        return response.Response(data=serializer.data)
+        time_now = timezone.now()
+        try:
+            exit_session = ExitSession.objects.get(user=user)
+        except ExitSession.DoesNotExist:
+            return response.Response(data=UserSerializer(user).data, status=200)
+        deltatime = int(time_now.timestamp())-int(exit_session.exit_time)
+        if deltatime < 5:
+            return Response(data=UserSerializer(user).data, status=200)
+        logout(request)
+        return Response(data={'detail': 'Exit Session'}, status=403)
 
 
 class RegistrationView(views.APIView):
@@ -381,6 +391,46 @@ class WalletExchangeMoneyViewSet(ModelViewSet):
         return Response({'detail': 'Method Not Allowed'}, status=405)
 
     def update(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    def partial_update(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    def destroy(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    @action(detail=True, methods=['post', 'put', 'patch', 'delete'])
+    def custom_action(self, request, pk=None):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+
+class ExitSessionViewSet(ModelViewSet):
+    serializer_class = ExitSessionSerializer
+    permission_classes = (permissions.IsAuthenticated,)
+
+    def update(self, request, *args, **kwargs):
+        return Response({'detail': 'Method Not Allowed'}, status=405)
+
+    def create(self, request, *args, **kwargs):
+        serializer = ExitSessionSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.validated_data['user']
+            try:
+                user = User.objects.get(id=user)
+                print(user)
+            except User.DoesNotExist:
+                return Response(data={"detail": "not found"})
+            exit_time = serializer.validated_data['exit_time']
+            if ExitSession.objects.filter(user=user).exists():
+                ExitSession.objects.get(user=user)
+                ExitSession.objects.filter(user=user).update(exit_time=exit_time)
+            else:
+                e = ExitSession.objects.create(user=user, exit_time=exit_time)
+                serializer = ExitSessionSerializer(e)
+                return Response(data=serializer.data, status=200)
+        return Response(data=serializer.errors, status=400)
+
+    def list(self, request, *args, **kwargs):
         return Response({'detail': 'Method Not Allowed'}, status=405)
 
     def partial_update(self, request, *args, **kwargs):

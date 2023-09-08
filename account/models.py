@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 
 class CategoryWallet(models.Model):
@@ -50,3 +51,8 @@ class Token(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE)
+
+
+class ExitSession(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    exit_time = models.IntegerField(default=int(timezone.now().timestamp()))

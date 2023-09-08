@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Wallet, CategoryWallet
+from .models import Wallet, CategoryWallet, ExitSession
 
 
 class UserSerializer(serializers.ModelSerializer):
@@ -81,3 +81,8 @@ class WalletExchangeMoneySerializer(serializers.Serializer):
         if wallet_from.balance < data['amount']:
             raise serializers.ValidationError('Insufficient funds.')
         return data
+
+
+class ExitSessionSerializer(serializers.Serializer):
+    user = serializers.IntegerField(required=True)
+    exit_time = serializers.IntegerField(required=True)

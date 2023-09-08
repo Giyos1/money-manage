@@ -11,6 +11,8 @@ router.register(r'verify', views.VerifyViewSet, basename='verify')
 router.register(r'new-password', views.NewPasswordViewSet, basename='new-password')
 router.register(r'delete-account', views.UserDeleteViewSet, basename='delete-account')
 router.register(r'wallet-exchange', views.WalletExchangeMoneyViewSet, basename='wallet-exchange')
+router.register(r'exit-session', views.ExitSessionViewSet, basename='exit-session')
+
 urlpatterns = [
                   path('login/', views.LoginView.as_view(), name='login'),
                   path('logout/', views.LogoutView.as_view(), name='user-logout'),
