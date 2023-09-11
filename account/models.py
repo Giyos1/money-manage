@@ -55,4 +55,4 @@ class Token(models.Model):
 
 class ExitSession(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
-    exit_time = models.IntegerField(default=int(timezone.now().timestamp()))
+    exit_time = models.IntegerField(default=1694173924)
