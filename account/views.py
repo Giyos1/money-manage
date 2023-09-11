@@ -442,3 +442,5 @@ class ExitSessionViewSet(ModelViewSet):
     @action(detail=True, methods=['post', 'put', 'patch', 'delete'])
     def custom_action(self, request, pk=None):
         return Response({'detail': 'Method Not Allowed'}, status=405)
+
+# test
