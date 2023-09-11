@@ -66,6 +66,7 @@ class LoginView(views.APIView):
         serializer.is_valid(raise_exception=True)
         user = serializer.validated_data['user']
         login(request, user)
+        ExitSession.objects.filter(user=user).delete()
         return response.Response(UserSerializer(user).data)
 
 
@@ -87,7 +88,10 @@ class SessionUserView(views.APIView):
             exit_session = ExitSession.objects.get(user=user)
         except ExitSession.DoesNotExist:
             return response.Response(data=UserSerializer(user).data, status=200)
-        deltatime = int(time_now.timestamp())-int(exit_session.exit_time)
+        deltatime = int(time_now.timestamp()) - int(exit_session.exit_time) / 1000
+        print(deltatime)
+        print(exit_session.exit_time)
+        print(time_now.timestamp())
         if deltatime < 5:
             return Response(data=UserSerializer(user).data, status=200)
         logout(request)
@@ -417,13 +421,13 @@ class ExitSessionViewSet(ModelViewSet):
             user = serializer.validated_data['user']
             try:
                 user = User.objects.get(id=user)
-                print(user)
             except User.DoesNotExist:
                 return Response(data={"detail": "not found"})
             exit_time = serializer.validated_data['exit_time']
             if ExitSession.objects.filter(user=user).exists():
                 ExitSession.objects.get(user=user)
                 ExitSession.objects.filter(user=user).update(exit_time=exit_time)
+                return Response(data={"detail": "updated"}, status=200)
             else:
                 e = ExitSession.objects.create(user=user, exit_time=exit_time)
                 serializer = ExitSessionSerializer(e)
