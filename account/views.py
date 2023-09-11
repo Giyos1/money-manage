@@ -444,3 +444,4 @@ class ExitSessionViewSet(ModelViewSet):
         return Response({'detail': 'Method Not Allowed'}, status=405)
 
 # test
+# class TestViewSet(ModelViewSet):
