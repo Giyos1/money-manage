@@ -140,3 +140,25 @@ EMAIL_HOST_USER = 'pulboshqaruvi@gmail.com'
 EMAIL_HOST_PASSWORD = 'zlgiskpozscrmxnz'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
+#
+# LOGGING = {
+#     'version': 1,
+#     'filters': {
+#         'require_debug_true': {
+#             '()': 'django.utils.log.RequireDebugTrue',
+#         }
+#     },
+#     'handlers': {
+#         'console': {
+#             'level': 'DEBUG',
+#             'filters': ['require_debug_true'],
+#             'class': 'logging.StreamHandler',
+#         }
+#     },
+#     'loggers': {
+#         'django.db.backends': {
+#             'level': 'DEBUG',
+#             'handlers': ['console'],
+#         }
+#     }
+# }

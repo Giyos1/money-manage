@@ -1,6 +1,7 @@
 import json
 from datetime import datetime
 
+from django.db.models import Sum, Q
 from django.db.transaction import atomic
 from django.utils import timezone
 from rest_framework.views import APIView
@@ -12,7 +13,7 @@ from rest_framework.viewsets import ModelViewSet, ViewSet
 from .models import Money, MoneyItem, AutoPay
 from .serializers import MoneySerializer, MoneyItemSerializer, MoneyItemListSerializer, AutoPaySerializer, \
     AutoPayListSerializer
-from .utils import summ_usd, summ_uzs, usd_to_uzd, uzd_to_usd
+from .utils import sum_rate, usd_to_uzd, uzd_to_usd
 from account.models import Wallet
 
 
@@ -97,43 +98,23 @@ class StatusViewSet(ViewSet):
     def list(self, request, *args, **kwargs):
         time = datetime.now()
         queryset = self.get_queryset()
-        queryset_income = queryset.filter(money__is_income=True, created_at__year=time.year,
-                                          created_at__month=time.month)
-        queryset_outcome = queryset.filter(money__is_income=False, created_at__year=time.year,
-                                           created_at__month=time.month)
-        income_uzs = summ_uzs(queryset_income)
-        income_usd = summ_usd(queryset_income)
-        outcome_uzs = summ_uzs(queryset_outcome)
-        outcome_usd = summ_usd(queryset_outcome)
-        balance_uzs = income_uzs - outcome_uzs
-        balance_usd = income_usd - outcome_usd
-        user_wallets = Wallet.objects.filter(user=self.request.user, active=True)
-        data = WalletSerializer(user_wallets, many=True).data
-        # print(json.dumps(data, indent=4, sort_keys=True))
-        total_balance_wallets = 0
-        for wallet in user_wallets:
-            if wallet.currency == 'UZS':
-                # print(wallet.balance)
-                total_balance_wallets += wallet.balance
-                # print(total_balance_wallets)
-
-            elif wallet.currency == 'USD':
-                # print(wallet.balance)
-                total_balance_wallets += usd_to_uzd(wallet.balance)
-                # print('dollar=',usd_to_uzd(wallet.balance))
-                # print(total_balance_wallets)
-        print("sum",total_balance_wallets)
-
-        total_balance_wallets_usd = 0
-        for wallet in user_wallets:
-            if wallet.currency == 'USD':
-                total_balance_wallets_usd += wallet.balance
-
-            elif wallet.currency == 'UZS':
-                total_balance_wallets_usd += uzd_to_usd(wallet.balance)
-        print("usd",total_balance_wallets_usd)
-        # total_balance_uzs = balance_uzs + total_balance_wallets
-        # total_balance_usd = balance_usd + uzd_to_usd(total_balance_wallets)
+        rate = sum_rate()
+        aggregated_qs = queryset.filter(created_at__year=time.year, created_at__month=time.month).aggregate(
+            income_uzs=Sum('amount', filter=Q(money__is_income=True, wallet__currency='UZS')),
+            income_usd=Sum('amount', filter=Q(money__is_income=True, wallet__currency='USD')),
+            outcome_uzs=Sum('amount', filter=Q(money__is_income=False, wallet__currency='UZS')),
+            outcome_usd=Sum('amount', filter=Q(money__is_income=False, wallet__currency='USD')),
+        )
+        income_uzs = aggregated_qs['income_uzs'] + aggregated_qs['income_usd'] * float(rate)
+        income_usd = aggregated_qs['income_uzs'] / float(rate) + aggregated_qs['income_usd']
+        outcome_uzs = aggregated_qs['outcome_uzs'] + aggregated_qs['outcome_usd'] * float(rate)
+        outcome_usd = aggregated_qs['outcome_uzs'] / float(rate) + aggregated_qs['outcome_usd']
+        user_wallets = Wallet.objects.filter(user=self.request.user, active=True).aggregate(
+            total_balance_uzs=Sum('balance', filter=Q(currency='UZS')),
+            total_balance_usd=Sum('balance', filter=Q(currency='USD'))
+        )
+        total_balance_wallets = user_wallets['total_balance_uzs'] + user_wallets['total_balance_usd'] * float(rate)
+        total_balance_wallets_usd = user_wallets['total_balance_uzs'] / float(rate) + user_wallets['total_balance_usd']
 
         return Response(data={'income_uzs': income_uzs, 'income_usd': income_usd, 'outcome_uzs': outcome_uzs,
                               'outcome_usd': outcome_usd, 'total_balance_uzs': total_balance_wallets,

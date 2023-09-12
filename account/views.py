@@ -447,5 +447,3 @@ class ExitSessionViewSet(ModelViewSet):
     def custom_action(self, request, pk=None):
         return Response({'detail': 'Method Not Allowed'}, status=405)
 
-# test
-# class TestViewSet(ModelViewSet):

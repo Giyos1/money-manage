@@ -49,7 +49,7 @@ class Money(models.Model):
         ordering = ['-created_at']
 
 
-class MoneyItem(models.Model):
+class   MoneyItem(models.Model):
     money = models.ForeignKey(Money, on_delete=models.CASCADE, related_name='money_item', null=True, blank=True)
     description = models.TextField(max_length=1000)
     amount = models.FloatField()
@@ -82,6 +82,17 @@ class RepeatMoney(models.Model):
 
 class AutoPay(models.Model):
     money = models.ForeignKey(Money, on_delete=models.CASCADE, related_name='auto_pay')
+    description = models.TextField(max_length=1000)
+    amount = models.IntegerField(default=0)
+    deadline = models.DateTimeField(default=timezone.now)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    paid_amount = models.IntegerField(default=0)
+    wallet = models.ForeignKey('account.Wallet', on_delete=models.CASCADE)
+
+
+class Qarz(models.Model):
+    money = models.ForeignKey(Money, on_delete=models.CASCADE, related_name='qarz')
     description = models.TextField(max_length=1000)
     amount = models.IntegerField(default=0)
     deadline = models.DateTimeField(default=timezone.now)
