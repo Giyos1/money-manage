@@ -73,3 +73,12 @@ class DebtSerializer(serializers.Serializer):
         if data['paid_amount'] > data['amount']:
             raise serializers.ValidationError('Paid amount must be less than amount.')
         return data
+
+
+class DebtListSerializer(serializers.ModelSerializer):
+    money = MoneySerializer(read_only=True)
+    wallet = WalletSerializer(read_only=True)
+
+    class Meta:
+        model = Debt
+        fields = '__all__'

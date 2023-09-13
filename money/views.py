@@ -12,7 +12,7 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
 from .models import Money, MoneyItem, AutoPay, Debt
 from .serializers import MoneySerializer, MoneyItemSerializer, MoneyItemListSerializer, AutoPaySerializer, \
-    AutoPayListSerializer, DebtSerializer
+    AutoPayListSerializer, DebtSerializer, DebtListSerializer
 from .utils import sum_rate, usd_to_uzd, uzd_to_usd
 from account.models import Wallet
 
@@ -209,6 +209,11 @@ class DebtViewSet(ModelViewSet):
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = DebtListSerializer(queryset, many=True)
+        return Response(serializer.data, status=200)
 
     @atomic
     def create(self, request, *args, **kwargs):
