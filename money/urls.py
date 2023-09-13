@@ -8,4 +8,5 @@ router.register(r'money-item', views.MoneyItemViewSet, basename='money-item')
 router.register(r'dashboard', views.StatusViewSet, basename='dashboard')
 router.register(r'auto-pay', views.AutoPayViewSet, basename='auto-pay')
 router.register(r'update-order', views.MoneyOrderUpdateViewSet, basename='update-order')
+router.register(r'debt', views.DebtViewSet, basename='debt')
 urlpatterns = router.urls

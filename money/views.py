@@ -10,9 +10,9 @@ from account.serializers import WalletSerializer
 from rest_framework import permissions
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet, ViewSet
-from .models import Money, MoneyItem, AutoPay
+from .models import Money, MoneyItem, AutoPay, Debt
 from .serializers import MoneySerializer, MoneyItemSerializer, MoneyItemListSerializer, AutoPaySerializer, \
-    AutoPayListSerializer
+    AutoPayListSerializer, DebtSerializer
 from .utils import sum_rate, usd_to_uzd, uzd_to_usd
 from account.models import Wallet
 
@@ -197,3 +197,97 @@ class AutoPayViewSet(ModelViewSet):
                 return Response(status=200,
                                 data={'auto_pay': serializer_auto_pay.data, 'transaction': serializer_transaction.data})
             return Response(status=200, data={'auto_pay': serializer_auto_pay.data})
+
+
+class DebtViewSet(ModelViewSet):
+    permission_classes = (permissions.IsAuthenticated,)
+    queryset = Debt.objects.all()
+    serializer_class = DebtSerializer
+
+    def get_queryset(self):
+        return self.queryset.filter(wallet__user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+    @atomic
+    def create(self, request, *args, **kwargs):
+        dict1 = {}
+        serializer = self.get_serializer(data=request.data)
+        money = Money.objects.filter(user=self.request.user, is_debt=True)
+        if serializer.is_valid():
+            data = serializer.validated_data
+            wallet = data['wallet']
+            amount = data['amount']
+            paid_amount = data['paid_amount']
+            deadline = data['deadline']
+            description = data['description']
+            is_income = data['is_income']
+            if not money:
+                Money.objects.create(user=self.request.user,
+                                     name='Qarz olish',
+                                     is_income=True,
+                                     target_money=0,
+                                     currency='UZS',
+                                     is_deleted=True,
+                                     is_debt=True)
+                Money.objects.create(user=self.request.user,
+                                     name='Qarz berish',
+                                     is_income=False,
+                                     target_money=0,
+                                     currency='UZS',
+                                     is_deleted=True,
+                                     is_debt=True)
+                money = Money.objects.filter(user=self.request.user, is_debt=True)
+
+            if is_income:
+                d1 = Debt.objects.create(wallet=wallet, money=money.filter(is_income=True).first(), amount=amount,
+                                         paid_amount=paid_amount, description=description, deadline=deadline)
+            else:
+                d1 = Debt.objects.create(wallet=wallet, money=money.filter(is_income=False).first(), amount=amount,
+                                         paid_amount=paid_amount, description=description, deadline=deadline)
+            m1 = MoneyItem.objects.create(wallet=wallet, money=money.filter(is_income=is_income).first(), amount=amount,
+                                          description=description)
+            dict1['Debt'] = DebtSerializer(d1).data
+            dict1['MoneyItem'] = MoneyItemSerializer(m1).data
+            return Response(status=200, data=dict1)
+        return Response(status=400, data=serializer.errors)
+
+    @atomic
+    def update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid():
+            m1 = None
+            data = serializer.validated_data
+            wallet = data['wallet']
+            amount = data['amount']
+            paid_amount = data['paid_amount']
+            deadline = data['deadline']
+            description = data['description']
+
+            money = Money.objects.filter(user=self.request.user, is_debt=True)
+            is_income = not (instance.money.is_income)
+            money = money.filter(is_income=is_income).first()
+
+            if paid_amount != instance.paid_amount:
+                m1 = MoneyItem.objects.create(
+                    wallet=wallet,
+                    money=money,
+                    amount=paid_amount - instance.paid_amount,
+                    description=description,
+                )
+            instance.wallet = wallet
+            instance.amount = amount
+            instance.paid_amount = paid_amount
+            instance.deadline = deadline
+            instance.description = description
+            if instance.amount == instance.paid_amount:
+                instance.is_active = False
+            instance.save()
+            serializer_debt = DebtSerializer(instance)
+            if m1:
+                serializer_transaction = MoneyItemSerializer(m1)
+                return Response(status=200,
+                                data={'debt': serializer_debt.data, 'transaction': serializer_transaction.data})
+            return Response(status=200, data={'debt': serializer_debt.data})

@@ -28,18 +28,10 @@ class Money(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     is_deleted = models.BooleanField(default=False)
+    is_debt = models.BooleanField(default=False)
     order = models.IntegerField(default=0)
 
     def actually(self):
-        # items = []
-        # for item in self.money_item.all():
-        #     if item.wallet.currency == self.currency:
-        #         items.append(item)
-        #     else:
-        #         if item.wallet.currency == 'USD':
-        #             items.append(item.amount * sum_rate)
-        #         elif item.wallet.currency == 'UZS':
-        #             items.append(item.amount
         return sum([item.amount for item in self.money_item.all()])
 
     def __str__(self):
@@ -48,8 +40,14 @@ class Money(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+    def full_clean(self, exclude=None, validate_unique=True, validate_constraints=True):
+        m1 = Money.objects.filter(is_debt=True).count()
+        if m1 > 2 and self.is_debt:
+            raise ValueError('You can only have 2 debts.')
+        super().full_clean(exclude, validate_unique, validate_constraints)
 
-class   MoneyItem(models.Model):
+
+class MoneyItem(models.Model):
     money = models.ForeignKey(Money, on_delete=models.CASCADE, related_name='money_item', null=True, blank=True)
     description = models.TextField(max_length=1000)
     amount = models.FloatField()
@@ -57,9 +55,6 @@ class   MoneyItem(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     wallet = models.ForeignKey('account.Wallet', on_delete=models.CASCADE)
-
-    # def __str__(self):
-    #     return '{} - {}'.format(self.money.name, self.amount)
 
     class Meta:
         ordering = ['-created_at']
@@ -91,12 +86,13 @@ class AutoPay(models.Model):
     wallet = models.ForeignKey('account.Wallet', on_delete=models.CASCADE)
 
 
-class Qarz(models.Model):
-    money = models.ForeignKey(Money, on_delete=models.CASCADE, related_name='qarz')
+class Debt(models.Model):
+    money = models.ForeignKey(Money, on_delete=models.CASCADE, related_name='debt')
     description = models.TextField(max_length=1000)
-    amount = models.IntegerField(default=0)
+    amount = models.FloatField(default=0)
     deadline = models.DateTimeField(default=timezone.now)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    paid_amount = models.IntegerField(default=0)
+    paid_amount = models.FloatField(default=0)
     wallet = models.ForeignKey('account.Wallet', on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
